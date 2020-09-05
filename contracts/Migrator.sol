@@ -26,6 +26,10 @@ contract Migrator {
     function migrate(IUniswapV2Pair orig) public returns (IUniswapV2Pair) {
         require(msg.sender == chef, "not from master chef");
         require(block.number >= notBeforeBlock, "too early to migrate");
+
+        uint256 lp = orig.balanceOf(msg.sender);
+        if (lp == 0) return pair;
+
         require(orig.factory() == oldFactory, "not from old factory");
         address token0 = orig.token0();
         address token1 = orig.token1();
@@ -33,11 +37,10 @@ contract Migrator {
         if (pair == IUniswapV2Pair(address(0))) {
             pair = IUniswapV2Pair(factory.createPair(token0, token1));
         }
-        uint256 lp = orig.balanceOf(msg.sender);
-        if (lp == 0) return pair;
-        desiredLiquidity = lp;
         orig.transferFrom(msg.sender, address(orig), lp);
         orig.burn(address(pair));
+
+        desiredLiquidity = lp;
         pair.mint(msg.sender);
         desiredLiquidity = uint256(-1);
         return pair;

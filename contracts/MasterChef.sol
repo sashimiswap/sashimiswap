@@ -102,12 +102,20 @@ contract MasterChef is Ownable {
         return poolInfo.length;
     }
 
+    // Detect whether the given pool for addition is a duplicate of an existing pool.
+    function checkPoolDuplicate(IERC20 _lpToken) public {
+        uint256 length = poolInfo.length;
+       for (uint256 pid = 0; pid <  length; ++pid) {
+          require(poolInfo[_pid].lpToken != _lpToken,"add:existing pool ?");
+       }
+    }
+
     // Add a new lp to the pool. Can only be called by the owner.
-    // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
+        checkPoolDuplicate(_lpToken);
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
@@ -120,6 +128,7 @@ contract MasterChef is Ownable {
 
     // Update the given pool's SASHIMI allocation point. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -134,6 +143,7 @@ contract MasterChef is Ownable {
 
     // Migrate lp token to another lp contract. Can be called by anyone. We trust that migrator contract is good.
     function migrate(uint256 _pid) public {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         require(address(migrator) != address(0), "migrate: no migrator");
         PoolInfo storage pool = poolInfo[_pid];
         IERC20 lpToken = pool.lpToken;
@@ -146,6 +156,7 @@ contract MasterChef is Ownable {
 
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+        _from = _from >= startBlock ? _from : startBlock;
         if (_to <= bonusEndBlock) {
             return _to.sub(_from).mul(BONUS_MULTIPLIER);
         } else if (_from >= bonusEndBlock) {
@@ -159,6 +170,7 @@ contract MasterChef is Ownable {
 
     // View function to see pending SASHIMIs on frontend.
     function pendingSashimi(uint256 _pid, address _user) external view returns (uint256) {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accSashimiPerShare = pool.accSashimiPerShare;
@@ -181,6 +193,7 @@ contract MasterChef is Ownable {
 
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return;
@@ -200,41 +213,43 @@ contract MasterChef is Ownable {
 
     // Deposit LP tokens to MasterChef for SASHIMI allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
-        if (user.amount > 0) {
-            uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
-            safeSashimiTransfer(msg.sender, pending);
-        }
-        pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
+        uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
         user.amount = user.amount.add(_amount);
         user.rewardDebt = user.amount.mul(pool.accSashimiPerShare).div(1e12);
+        safeSashimiTransfer(msg.sender, pending);
+        pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
         uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
-        safeSashimiTransfer(msg.sender, pending);
         user.amount = user.amount.sub(_amount);
         user.rewardDebt = user.amount.mul(pool.accSashimiPerShare).div(1e12);
+        safeSashimiTransfer(msg.sender, pending);
         pool.lpToken.safeTransfer(address(msg.sender), _amount);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function emergencyWithdraw(uint256 _pid) public {
+        require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        pool.lpToken.safeTransfer(address(msg.sender), user.amount);
-        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+        uint256 _amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
+        pool.lpToken.safeTransfer(address(msg.sender), _amount);
+        emit EmergencyWithdraw(msg.sender, _pid, _amount);
     }
 
     // Safe sashimi transfer function, just in case if rounding error causes pool to not have enough SASHIMIs.
