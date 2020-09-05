@@ -28,7 +28,7 @@ contract Migrator {
         require(block.number >= notBeforeBlock, "too early to migrate");
 
         uint256 lp = orig.balanceOf(msg.sender);
-        if (lp == 0) return pair;
+        if (lp == 0) return IUniswapV2Pair(address(0));
 
         require(orig.factory() == oldFactory, "not from old factory");
         address token0 = orig.token0();
@@ -42,7 +42,7 @@ contract Migrator {
 
         desiredLiquidity = lp;
         pair.mint(msg.sender);
-        desiredLiquidity = uint256(-1);
+        desiredLiquiditpairy = uint256(-1);
         return pair;
     }
 }

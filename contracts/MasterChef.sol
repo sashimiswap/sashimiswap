@@ -102,20 +102,16 @@ contract MasterChef is Ownable {
         return poolInfo.length;
     }
 
-    // Detect whether the given pool for addition is a duplicate of an existing pool.
-    function checkPoolDuplicate(IERC20 _lpToken) public {
-        uint256 length = poolInfo.length;
-       for (uint256 pid = 0; pid <  length; ++pid) {
-          require(poolInfo[pid].lpToken != _lpToken,"add:existing pool ?");
-       }
-    }
-
     // Add a new lp to the pool. Can only be called by the owner.
     function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
-        checkPoolDuplicate(_lpToken);
+        // Detect whether the given pool for addition is a duplicate of an existing pool.
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid <  length; ++pid) {
+          require(poolInfo[pid].lpToken != _lpToken,"add:existing pool ?");
+        }
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
