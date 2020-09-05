@@ -42,7 +42,7 @@ contract Migrator {
 
         desiredLiquidity = lp;
         pair.mint(msg.sender);
-        desiredLiquiditpairy = uint256(-1);
+        desiredLiquidity = uint256(-1);
         return pair;
     }
 }
