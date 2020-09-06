@@ -1,5 +1,4 @@
-#  SashimiSwap ![1f41f](https://user-images.githubusercontent.com/70681242/92337783-e0a0cb80-f0e6-11ea-8d40-47bf3ac7a7e7.png)
-
+#  SashimiSwap ![1f41f-32x32](https://user-images.githubusercontent.com/70681242/92337848-39706400-f0e7-11ea-9006-67a4edec5bea.png)
 https://app.sashimiswap.org. Feel free to read the code. More details coming soon.
 
 ## License
