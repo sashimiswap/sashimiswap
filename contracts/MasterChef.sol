@@ -213,12 +213,10 @@ contract MasterChef is Ownable {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
-        if (user.amount > 0) {
-           uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
-           user.amount = user.amount.add(_amount);
-           user.rewardDebt = user.amount.mul(pool.accSashimiPerShare).div(1e12);
-           safeSashimiTransfer(msg.sender, pending);
-        }
+        uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
+        user.amount = user.amount.add(_amount);
+        user.rewardDebt = user.amount.mul(pool.accSashimiPerShare).div(1e12);
+        safeSashimiTransfer(msg.sender, pending);
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         emit Deposit(msg.sender, _pid, _amount);
     }
