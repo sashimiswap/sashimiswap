@@ -216,7 +216,9 @@ contract MasterChef is Ownable {
         uint256 pending = user.amount.mul(pool.accSashimiPerShare).div(1e12).sub(user.rewardDebt);
         user.amount = user.amount.add(_amount);
         user.rewardDebt = user.amount.mul(pool.accSashimiPerShare).div(1e12);
-        safeSashimiTransfer(msg.sender, pending);
+        if (pending > 0) {
+            safeSashimiTransfer(msg.sender, pending);
+        }
         pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
         emit Deposit(msg.sender, _pid, _amount);
     }
