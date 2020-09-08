@@ -65,7 +65,7 @@ contract MasterChef is Ownable {
     // Block number when bonus SASHIMI period ends.
     uint256 public bonusEndBlock;
     // SASHIMI tokens created per block.
-    uint256 public sashimiPerBlock = 100 * 10**18;
+    uint256 public sashimiPerBlock;
     // Bonus muliplier for early sashimi makers.
     uint256 public constant BONUS_MULTIPLIER = 10;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
@@ -84,38 +84,18 @@ contract MasterChef is Ownable {
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
 
-    constructor() public {
-    }
-
-    // Set SashimiToken address. Can only be called by the owner.
-    function setSashimiToken(SashimiToken _sashimi) public onlyOwner {
-        require(address(_sashimi) != address(0), "setSashimiToken: not valid address");
+    constructor(
+        SashimiToken _sashimi,
+        address _devaddr,
+        uint256 _sashimiPerBlock,
+        uint256 _startBlock,
+        uint256 _bonusEndBlock
+    ) public {
         sashimi = _sashimi;
-    }
-
-    // Set new owner of SashimiToken. Can only be called by the owner.
-    function setSashimiOwner(address _newOwner) public onlyOwner {
-        require(sashimi != SashimiToken(0), "setSashimiOwner: sashimi token is the zero address");
-        require(_newOwner != address(0), "setSashimiOwner: new owner is the zero address");
-        sashimi.transferOwnership(_newOwner);
-    }
-
-    // Set devaddr address. Can only be called by the owner.
-    function setDevaddr(address _devaddr) public onlyOwner {
-        require(address(_devaddr) != address(0), "setDevaddr: not valid address");
         devaddr = _devaddr;
-    }
-
-    // Set startBlock. Can only be called by the owner.
-    function setStartBlock(uint256 _startBlock) public onlyOwner {
-        require(_startBlock >= 0, "setStartBlock: not valid startBlock");
-        startBlock = _startBlock;
-    }
-
-    // Set bonusEndBlock. Can only be called by the owner.
-    function setBonusEndBlock(uint256 _bonusEndBlock) public onlyOwner {
-        require(_bonusEndBlock > startBlock, "setBonusEndBlock: not valid _bonusEndBlock");
+        sashimiPerBlock = _sashimiPerBlock;
         bonusEndBlock = _bonusEndBlock;
+        startBlock = _startBlock;
     }
 
     function poolLength() external view returns (uint256) {
