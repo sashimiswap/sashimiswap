@@ -61,7 +61,7 @@ contract CaptainTomi is Ownable {
     // SASHIMI tokens created per block.
     uint256 public sashimiPerBlock;
     // Bonus muliplier for early sashimi makers.
-    uint256 public constant BONUS_MULTIPLIER = 1;
+    uint256 public constant BONUS_MULTIPLIER = 10;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
     IMigratorTomi public migrator;
 
@@ -195,8 +195,8 @@ contract CaptainTomi is Ownable {
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint256 sashimiReward = multiplier.mul(sashimiPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        sashimi.mint(devaddr, sashimiReward.mul(2).div(100));
-        sashimi.mint(address(this), sashimiReward.mul(98).div(100));
+        sashimi.mint(devaddr, sashimiReward.div(10));
+        sashimi.mint(address(this), sashimiReward);
         pool.accSashimiPerShare = pool.accSashimiPerShare.add(sashimiReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
