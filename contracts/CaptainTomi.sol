@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SashimiToken.sol";
 
 
-interface IMigratorChef {
+interface IMigratorTomi {
     // Perform LP token migration from legacy UniswapV2 to SashimiSwap.
     // Take the current LP token address and return the new LP token address.
     // Migrator should have full access to the caller's LP token.
@@ -22,14 +22,8 @@ interface IMigratorChef {
     function migrate(IERC20 token) external returns (IERC20);
 }
 
-// MasterChef is the master of Sashimi. He can make Sashimi and he is a fair guy.
-//
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once SASHIMI is sufficiently
-// distributed and the community can show to govern itself.
-//
-// Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable {
+// CaptainTomi is the catian of fishing boat. He can make sashimi.
+contract CaptainTomi is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -67,9 +61,9 @@ contract MasterChef is Ownable {
     // SASHIMI tokens created per block.
     uint256 public sashimiPerBlock;
     // Bonus muliplier for early sashimi makers.
-    uint256 public constant BONUS_MULTIPLIER = 10;
+    uint256 public constant BONUS_MULTIPLIER = 1;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
-    IMigratorChef public migrator;
+    IMigratorTomi public migrator;
 
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -133,7 +127,7 @@ contract MasterChef is Ownable {
     }
 
     // Set the migrator contract. Can only be called by the owner.
-    function setMigrator(IMigratorChef _migrator) public onlyOwner {
+    function setMigrator(IMigratorTomi _migrator) public onlyOwner {
         migrator = _migrator;
     }
 
@@ -201,13 +195,13 @@ contract MasterChef is Ownable {
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
         uint256 sashimiReward = multiplier.mul(sashimiPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        sashimi.mint(devaddr, sashimiReward.div(10));
-        sashimi.mint(address(this), sashimiReward);
+        sashimi.mint(devaddr, sashimiReward.mul(2).div(100));
+        sashimi.mint(address(this), sashimiReward.mul(98).div(100));
         pool.accSashimiPerShare = pool.accSashimiPerShare.add(sashimiReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for SASHIMI allocation.
+    // Deposit LP tokens to CaptainTomi for SASHIMI allocation.
     function deposit(uint256 _pid, uint256 _amount) public {
         require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];
@@ -223,7 +217,7 @@ contract MasterChef is Ownable {
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    // Withdraw LP tokens from MasterChef.
+    // Withdraw LP tokens from CaptainTomi.
     function withdraw(uint256 _pid, uint256 _amount) public {
         require(_pid < poolInfo.length,"chef:pool exists?");
         PoolInfo storage pool = poolInfo[_pid];

@@ -7,10 +7,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 // SashimiToken with Governance.
 contract SashimiToken is ERC20("SashimiToken", "SASHIMI"), Ownable {
-    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
+
+    uint256 public constant MAX_SUPPLY = 80000 * 10**18;
+
+    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (CaptainTomi).
     function mint(address _to, uint256 _amount) public onlyOwner {
-        _mint(_to, _amount);
-        _moveDelegates(address(0), _delegates[_to], _amount);
+        if (totalSupply() < MAX_SUPPLY){ 
+          _mint(_to, _amount);
+          _moveDelegates(address(0), _delegates[_to], _amount);
+        }
     }
 
     // Copied and modified from YAM code:
